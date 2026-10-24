@@ -96,13 +96,69 @@ export default function PublicRegistry({ highlightedDocId }) {
           <p>Listening to Firestore <code>public</code> collection updates...</p>
         </div>
       ) : error ? (
-        <div className="registry-error">
-          <AlertTriangle size={18} />
-          <div>
-            <strong>Firestore Notice:</strong> {error}
-            <div className="error-hint">
-              If this is the first write to collection <code>public</code>, permissions or network will resolve upon first submission.
+        <div className="registry-error-box">
+          <div className="registry-error-top">
+            <AlertTriangle size={20} className="error-alert-icon" />
+            <div>
+              <h4 className="error-title">Firestore Security Rules Required</h4>
+              <p className="error-desc">
+                Cloud Firestore requires an explicit rule allowing read/write access to the <code>public</code> collection.
+              </p>
             </div>
+          </div>
+
+          <div className="rules-guide-box">
+            <div className="rules-guide-step">
+              <span className="step-badge">1</span>
+              <span>
+                Open Firebase Console Rules:{' '}
+                <a
+                  href="https://console.firebase.google.com/project/digitaltwin-13cdb/firestore/rules"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rules-console-link"
+                >
+                  Firebase Console → Firestore Rules <ExternalLink size={12} className="inline-ext" />
+                </a>
+              </span>
+            </div>
+
+            <div className="rules-guide-step">
+              <span className="step-badge">2</span>
+              <span>Add this rule inside <code>match /databases/{'{'}database{'}'}/documents</code>:</span>
+            </div>
+
+            <pre className="rules-code-snippet">
+{`match /public/{docId} {
+  allow read, write: if true;
+}`}
+            </pre>
+
+            <div className="rules-guide-step">
+              <span className="step-badge">3</span>
+              <span>Click <strong>Publish</strong> in the Firebase Console, then click:</span>
+            </div>
+
+            <button
+              type="button"
+              className="btn-retry-connection"
+              onClick={() => {
+                setLoading(true);
+                setError(null);
+                subscribeToPublicRegistry((items, err) => {
+                  setLoading(false);
+                  if (err) {
+                    setError(err.message || 'Unable to connect to Firestore.');
+                  } else {
+                    setReports(items);
+                    setError(null);
+                  }
+                }, 50);
+              }}
+            >
+              <RefreshCw size={14} />
+              <span>Retry Connection</span>
+            </button>
           </div>
         </div>
       ) : reports.length === 0 ? (

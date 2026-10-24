@@ -2027,3 +2027,121 @@ body {
   overflow-x: auto;
 }
 
+/* ── Rules guide in Public Registry ── */
+.registry-error-box {
+  background: rgba(255, 171, 0, 0.06);
+  border: 1px solid rgba(255, 171, 0, 0.28);
+  border-radius: var(--radius-sm);
+  padding: 20px;
+}
+
+.registry-error-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.error-alert-icon {
+  color: #ffab00;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.error-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #ffab00;
+  margin-bottom: 4px;
+}
+
+.error-desc {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.rules-guide-box {
+  background: #040913;
+  border: 1px solid rgba(255, 171, 0, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rules-guide-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+}
+
+.step-badge {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255, 171, 0, 0.15);
+  color: #ffab00;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rules-console-link {
+  color: var(--accent-cyan);
+  font-weight: 600;
+  text-decoration: underline;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rules-console-link:hover {
+  color: #fff;
+}
+
+.inline-ext {
+  margin-bottom: 2px;
+}
+
+.rules-code-snippet {
+  margin: 0;
+  background: #02060e;
+  border: 1px solid var(--border);
+  border-left: 3px solid #ffab00;
+  border-radius: 4px;
+  padding: 10px 14px;
+  font-family: monospace;
+  font-size: 0.78rem;
+  color: #e0f2fe;
+  line-height: 1.5;
+}
+
+.btn-retry-connection {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: rgba(255, 171, 0, 0.15);
+  border: 1px solid #ffab00;
+  border-radius: var(--radius-sm);
+  color: #ffab00;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-retry-connection:hover {
+  background: rgba(255, 171, 0, 0.25);
+  box-shadow: 0 0 12px rgba(255, 171, 0, 0.2);
+}
+
+
