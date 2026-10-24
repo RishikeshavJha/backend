@@ -39,7 +39,7 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  const handleSaveToPublic = useCallback(async (currentReport, location, description) => {
+  const handleSaveToPublic = useCallback(async (currentReport, location, description, imageFile) => {
     if (!currentReport) return;
     setIsSavingDoc(true);
     setSaveError(null);
@@ -49,7 +49,8 @@ export default function App() {
         report: currentReport,
         location,
         description,
-        user
+        user,
+        imageFile
       });
       setSavedDoc(result);
       setHighlightedDocId(result.id);
@@ -68,7 +69,7 @@ export default function App() {
     setSavedDoc(null);
     setSaveError(null);
 
-    lastPayloadRef.current = { location, description };
+    lastPayloadRef.current = { location, description, file };
 
     try {
       const formData = new FormData();
@@ -92,8 +93,8 @@ export default function App() {
         });
       } else {
         setReport(data.report);
-        // Automatically save record into the Firestore 'public' collection
-        handleSaveToPublic(data.report, location, description);
+        // Automatically save record and image into the Firestore 'public' collection
+        handleSaveToPublic(data.report, location, description, file);
       }
     } catch (err) {
       setError({
@@ -197,7 +198,8 @@ export default function App() {
                 handleSaveToPublic(
                   report,
                   lastPayloadRef.current?.location,
-                  lastPayloadRef.current?.description
+                  lastPayloadRef.current?.description,
+                  lastPayloadRef.current?.file
                 )
               }
               onViewInRegistry={handleViewInRegistry}

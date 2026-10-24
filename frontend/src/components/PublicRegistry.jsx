@@ -194,6 +194,15 @@ export default function PublicRegistry({ highlightedDocId }) {
                     aria-expanded={isExpanded}
                   >
                     <div className="item-meta-left">
+                      {item.imageUrl ? (
+                        <div className="item-thumbnail-wrap" title="Uploaded photo evidence">
+                          <img src={item.imageUrl} alt="" className="item-thumbnail-img" />
+                        </div>
+                      ) : (
+                        <div className="item-thumbnail-placeholder" title="No photo uploaded">
+                          📷
+                        </div>
+                      )}
                       <span className={`severity-tag ${getSeverityClass(item.severity)}`}>
                         {item.severity || 'Medium'}
                       </span>
@@ -230,6 +239,32 @@ export default function PublicRegistry({ highlightedDocId }) {
 
                   {isExpanded && (
                     <div className="item-detail-drawer">
+                      {/* Uploaded Street Photo Display */}
+                      {item.imageUrl && (
+                        <div className="detail-photo-card">
+                          <div className="detail-photo-bar">
+                            <span className="photo-label">📸 Uploaded Street Evidence Photo</span>
+                            <a
+                              href={item.imageUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="btn-view-full-img"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              Open Full Size ↗
+                            </a>
+                          </div>
+                          <div className="evidence-photo-box">
+                            <img
+                              src={item.imageUrl}
+                              alt={item.issueTitle || 'Street issue photograph'}
+                              className="evidence-photo-img"
+                              loading="lazy"
+                            />
+                          </div>
+                        </div>
+                      )}
+
                       <div className="detail-grid">
                         <div className="detail-col">
                           <span className="detail-label">Location:</span>
@@ -281,6 +316,7 @@ export default function PublicRegistry({ highlightedDocId }) {
 {`action: "${item.action || 'REPORTED_CIVIC_ISSUE'}"
 adminEmail: "${item.adminEmail || item.reporter?.email || 'public-reporter@civiclens.local'}"
 details: "${(item.details || '').slice(0, 80)}..."
+imageUrl: "${item.imageUrl ? (item.imageUrl.startsWith('data:') ? 'data:image/jpeg;base64... (stored in Firestore)' : item.imageUrl) : 'null'}"
 issueTitle: "${item.issueTitle || ''}"
 severity: "${item.severity || 'Medium'}"
 teamId: "${item.teamId || item.reporter?.uid || 'guest'}"

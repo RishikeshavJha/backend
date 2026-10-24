@@ -22,6 +22,12 @@ import {
   onSnapshot,
   serverTimestamp
 } from "firebase/firestore";
+import {
+  getStorage,
+  ref as storageRef,
+  uploadBytes,
+  getDownloadURL
+} from "firebase/storage";
 
 // User-provided Firebase configuration
 const firebaseConfig = {
@@ -38,6 +44,7 @@ const firebaseConfig = {
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
 
 // Initialize Analytics conditionally (only in supported browser environments)
@@ -67,10 +74,56 @@ export function formatDatabaseTimestamp(date = new Date()) {
 }
 
 /**
- * Save civic issue report under Firestore collection: 'public'
- * Fields match the adminAuditLogs schema structure shown in user's Firebase console
+ * Compress an image file to an optimized Base64 JPEG data URL
+ * Ensures image fits inside Firestore documents (< 1MB) and displays universally to all visitors
  */
-export async function saveToPublicRegistry({ report, location, description, user }) {
+export function compressImageFile(file, maxWidth = 800, maxHeight = 800, quality = 0.72) {
+  return new Promise((resolve) => {
+    if (!file || !file.type.startsWith('image/')) {
+      resolve(null);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve(dataUrl);
+      };
+      img.onerror = () => resolve(null);
+      img.src = e.target.result;
+    };
+    reader.onerror = () => resolve(null);
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * Save civic issue report and uploaded image into Cloud Firestore under collection: 'public'
+ */
+export async function saveToPublicRegistry({ report, location, description, user, imageFile = null, imagePreview = null }) {
   const now = new Date();
   const formattedTimestamp = formatDatabaseTimestamp(now);
   const timestampMs = now.getTime();
@@ -83,6 +136,31 @@ export async function saveToPublicRegistry({ report, location, description, user
   const category = report?.issueCategory || "General Infrastructure";
   const severityLevel = report?.severity?.level || "Moderate";
   const details = report?.suggestedReport?.description || report?.summary || description || "Civic issue report analyzed via CivicLens AI";
+
+  // Compress image to ensure it is embedded directly in Firestore and visible to every visitor
+  let finalImageUrl = null;
+  if (imageFile) {
+    try {
+      finalImageUrl = await compressImageFile(imageFile, 800, 800, 0.72);
+    } catch (e) {
+      console.warn("Failed to compress image:", e);
+    }
+
+    // Also attempt Firebase Cloud Storage upload if available
+    try {
+      const fileName = `public_${Date.now()}_${imageFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      const fileRef = storageRef(storage, `civic_issues/${fileName}`);
+      await uploadBytes(fileRef, imageFile);
+      const downloadUrl = await getDownloadURL(fileRef);
+      if (downloadUrl) {
+        finalImageUrl = downloadUrl;
+      }
+    } catch (storageErr) {
+      console.info("Storage upload notice (falling back to embedded compressed data URL):", storageErr.message);
+    }
+  } else if (imagePreview && imagePreview.startsWith('data:image/')) {
+    finalImageUrl = imagePreview;
+  }
 
   const docData = {
     // Top-level schema matching user's existing collections
@@ -108,6 +186,10 @@ export async function saveToPublicRegistry({ report, location, description, user
     urgencyNote: report?.suggestedReport?.urgencyNote || "",
     potentialImpact: report?.potentialImpact || {},
     uncertainty: report?.uncertaintyAndAssumptions || "",
+
+    // Image fields so photos are preserved and visible to all viewers
+    imageUrl: finalImageUrl || null,
+    hasImage: Boolean(finalImageUrl),
 
     // Reporter identity info
     reporter: {
