@@ -164,7 +164,17 @@ function ConfidenceBadge({ score }) {
   );
 }
 
-export default function ResultPanel({ report, isLoading, error, onReset }) {
+export default function ResultPanel({
+  report,
+  isLoading,
+  error,
+  onReset,
+  savedDoc,
+  isSavingDoc,
+  saveError,
+  onSaveToPublic,
+  onViewInRegistry
+}) {
   if (isLoading) {
     return (
       <div className="card fade-in">
@@ -290,6 +300,55 @@ export default function ResultPanel({ report, isLoading, error, onReset }) {
             <CategoryBadge category={r.issueCategory} isCivicIssue={r.isCivicIssue} />
             <ConfidenceBadge score={r.confidenceScore} />
           </div>
+
+          {/* Cloud Firestore Public Collection Sync Card */}
+          {savedDoc ? (
+            <div className="firestore-saved-banner">
+              <div className="firestore-saved-header">
+                <div className="firestore-saved-title">
+                  <span className="live-pulse-dot" />
+                  <span>Saved to Database · Collection: <code>public</code></span>
+                </div>
+                {onViewInRegistry && (
+                  <button
+                    type="button"
+                    className="btn-view-registry"
+                    onClick={() => onViewInRegistry(savedDoc.id)}
+                  >
+                    View in Feed ↓
+                  </button>
+                )}
+              </div>
+              <div className="firestore-saved-meta">
+                <div>
+                  <span className="meta-label">Document ID:</span>{' '}
+                  <code className="saved-id">{savedDoc.id}</code>
+                </div>
+                <div>
+                  <span className="meta-label">Action:</span>{' '}
+                  <code className="saved-action">{savedDoc.action || 'REPORTED_CIVIC_ISSUE'}</code>
+                </div>
+                <div>
+                  <span className="meta-label">Timestamp:</span>{' '}
+                  <span>{savedDoc.timestamp}</span>
+                </div>
+              </div>
+            </div>
+          ) : isSavingDoc ? (
+            <div className="firestore-saving-banner">
+              <span className="saving-spinner" />
+              <span>Saving report to Firestore <code>public</code> collection...</span>
+            </div>
+          ) : saveError ? (
+            <div className="firestore-error-banner">
+              <span>⚠️ Could not auto-save to Firestore: {saveError}</span>
+              {onSaveToPublic && (
+                <button type="button" className="btn-retry-save" onClick={onSaveToPublic}>
+                  Retry Save
+                </button>
+              )}
+            </div>
+          ) : null}
 
           {/* Summary */}
           {r.summary && (
