@@ -298,8 +298,12 @@ app.get('/', (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`CivicLens AI backend running on http://localhost:${PORT}`);
-  console.log(`Configured Model: ${GEMINI_MODEL}`);
-  console.log(`API Key configured: ${Boolean(GEMINI_API_KEY && GEMINI_API_KEY !== 'your_actual_api_key')}`);
-});
+if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`CivicLens AI backend running on http://localhost:${PORT}`);
+    console.log(`Configured Model: ${GEMINI_MODEL}`);
+    console.log(`API Key configured: ${Boolean(GEMINI_API_KEY && GEMINI_API_KEY !== 'your_actual_api_key')}`);
+  });
+}
+
+export default app;
